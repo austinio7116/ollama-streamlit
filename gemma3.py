@@ -21,7 +21,7 @@ DATA_DIR = "./data"
 STORAGE_DIR = "./storage"
 HISTORY_FILE = "./conversation_history.jsonl"
 MODEL = "gemma3"
-EMBED_MODEL = "nomic-embed-text"
+EMBED_MODEL = "mxbai-embed-large"
 
 # ---- Initialize Ollama LLM and Embeddings ---- #
 @st.cache_resource(show_spinner=False)
@@ -76,9 +76,10 @@ def save_conversation(query, response):
 conversation = load_conversation()
 
 # ---- Hybrid Query Function ---- #
-def hybrid_query(prompt, index, llm, conversation, similarity_top_k=3, similarity_cutoff=0.75):
+def hybrid_query(prompt, index, llm, conversation, similarity_top_k=3, similarity_cutoff=0.5):
     retriever = index.as_retriever(similarity_top_k=similarity_top_k)
     nodes = retriever.retrieve(prompt)
+    print(nodes)
 
     relevant_nodes = [node for node in nodes if node.score >= similarity_cutoff]
     context = "\n\n".join(node.get_content() for node in relevant_nodes) if relevant_nodes else ""
@@ -94,7 +95,7 @@ def hybrid_query(prompt, index, llm, conversation, similarity_top_k=3, similarit
         conversation_history += f"<start_of_turn>context\n{context}<end_of_turn>\n"
 
     conversation_history += "<start_of_turn>assistant\n"
-
+    print(conversation_history)
     return llm.stream_complete(conversation_history)
 
 # ---- Streamlit UI ---- #
